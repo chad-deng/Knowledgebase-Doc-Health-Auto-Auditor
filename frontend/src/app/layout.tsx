@@ -5,10 +5,12 @@ import { AppProvider } from '@/lib/context';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 
 const inter = Inter({ 
   subsets: ['latin'],
   display: 'swap',
+  variable: '--font-inter',
 });
 
 export const metadata: Metadata = {
@@ -29,27 +31,35 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
-        <AppProvider>
-          <ThemeProvider>
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-              {/* Header */}
-              <Header />
-              
-              <div className="flex">
-                {/* Sidebar */}
-                <Sidebar />
-                
-                {/* Main content */}
-                <main className="flex-1 ml-64 p-6">
-                  <div className="h-full">
-                    {children}
-                  </div>
-                </main>
+      <body className={`${inter.className} ${inter.variable}`} suppressHydrationWarning>
+        <ErrorBoundary level="critical" showDetails={process.env.NODE_ENV === 'development'}>
+          <AppProvider>
+            <ThemeProvider>
+              <div className="app-container">
+                {/* Header */}
+                <ErrorBoundary level="component">
+                  <Header />
+                </ErrorBoundary>
+
+                <div className="app-content">
+                  {/* Sidebar */}
+                  <ErrorBoundary level="component">
+                    <Sidebar />
+                  </ErrorBoundary>
+
+                  {/* Main content */}
+                  <main className="main-content">
+                    <div className="content-wrapper">
+                      <ErrorBoundary level="page">
+                        {children}
+                      </ErrorBoundary>
+                    </div>
+                  </main>
+                </div>
               </div>
-            </div>
-          </ThemeProvider>
-        </AppProvider>
+            </ThemeProvider>
+          </AppProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

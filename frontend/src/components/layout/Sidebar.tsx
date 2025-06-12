@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -8,94 +8,232 @@ import { useUI } from '@/lib/context';
 import {
   HomeIcon,
   DocumentTextIcon,
-  ChartBarIcon,
   Cog6ToothIcon,
-  PlayIcon,
   SparklesIcon,
-  CloudIcon,
+  ClockIcon,
+  XMarkIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Articles', href: '/articles', icon: DocumentTextIcon },
-  { name: 'Data Sources', href: '/data-sources', icon: CloudIcon },
-  { name: 'Architecture', href: '/architecture', icon: ChartBarIcon },
-  { name: 'Flow Demo', href: '/flow', icon: PlayIcon },
-  { name: 'AI Assistant', href: '/ai', icon: SparklesIcon },
-  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+  { 
+    name: 'Dashboard', 
+    href: '/', 
+    icon: HomeIcon,
+    description: 'Overview and analytics'
+  },
+  { 
+    name: 'Articles', 
+    href: '/articles', 
+    icon: DocumentTextIcon,
+    description: 'Manage knowledge base content'
+  },
+  { 
+    name: 'Audit History', 
+    href: '/audit-history', 
+    icon: ClockIcon,
+    description: 'View past audit results'
+  },
+  {
+    name: 'AI Assistant',
+    href: '/ai',
+    icon: SparklesIcon,
+    description: 'AI-powered content assistance'
+  },
+  {
+    name: 'Monitoring',
+    href: '/monitoring',
+    icon: ExclamationTriangleIcon,
+    description: 'System health and error monitoring'
+  },
+  {
+    name: 'Settings',
+    href: '/settings',
+    icon: Cog6ToothIcon,
+    description: 'Application configuration'
+  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { sidebarOpen } = useUI();
+  const { sidebarOpen, toggleSidebar } = useUI();
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Focus management for accessibility
+  useEffect(() => {
+    if (sidebarOpen && closeButtonRef.current) {
+      closeButtonRef.current.focus();
+    }
+  }, [sidebarOpen]);
+
+  // Handle escape key to close sidebar
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && sidebarOpen) {
+        toggleSidebar();
+      }
+    };
+
+    if (sidebarOpen) {
+      document.addEventListener('keydown', handleEscape);
+      // Prevent body scroll when sidebar is open on mobile
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [sidebarOpen, toggleSidebar]);
+
+  // Handle click outside to close sidebar on mobile
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      toggleSidebar();
+    }
+  };
 
   return (
     <>
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75"></div>
+        <div 
+          className="sidebar-overlay"
+          onClick={handleOverlayClick}
+          aria-hidden="true"
+        >
+          <div className="sidebar-backdrop"></div>
         </div>
       )}
 
       {/* Sidebar */}
       <div
+        ref={sidebarRef}
+        id="sidebar"
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          'sidebar-container',
+          sidebarOpen ? 'sidebar-open' : 'sidebar-closed'
         )}
+        role="navigation"
+        aria-label="Main navigation"
       >
         <div className="flex flex-col h-full">
-          {/* Logo area */}
-          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
+          {/* Logo area with mobile close button */}
+          <div className="sidebar-header">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">SH</span>
-              </div>
-              <span className="font-semibold text-gray-900 dark:text-white">KBA</span>
+              {/* Empty space for clean design */}
             </div>
+            
+            {/* Mobile close button */}
+            <button
+              ref={closeButtonRef}
+              onClick={toggleSidebar}
+              className="sidebar-close-btn"
+              aria-label="Close sidebar"
+            >
+              <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+            </button>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-4 space-y-2">
-            {navigation.map((item) => {
+          <nav 
+            className="sidebar-nav"
+            role="list"
+            aria-label="Main navigation menu"
+          >
+            {navigation.map((item, index) => {
               const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.name}
                   href={item.href}
+                  onClick={() => {
+                    // Close mobile sidebar when navigating
+                    if (window.innerWidth < 1024) {
+                      toggleSidebar();
+                    }
+                  }}
                   className={cn(
-                    'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                    isActive
-                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 border-blue-200 dark:border-blue-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                    'nav-item',
+                    isActive ? 'nav-item-active' : 'nav-item-inactive'
                   )}
+                  role="listitem"
+                  aria-current={isActive ? 'page' : undefined}
+                  aria-describedby={`nav-desc-${index}`}
                 >
                   <item.icon
                     className={cn(
-                      'mr-3 h-5 w-5 flex-shrink-0',
-                      isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300'
+                      'nav-icon',
+                      isActive ? 'nav-icon-active' : 'nav-icon-inactive'
                     )}
+                    aria-hidden="true"
                   />
-                  {item.name}
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className={cn(
+                      "truncate font-medium",
+                      isActive ? "nav-text-active" : "nav-text-inactive"
+                    )}>
+                      {item.name}
+                    </span>
+                    {/* Show description on hover for better UX */}
+                    <span 
+                      id={`nav-desc-${index}`}
+                      className="sr-only"
+                    >
+                      {item.description}
+                    </span>
+                  </div>
+                  
+                  {/* Active indicator */}
+                  {isActive && (
+                    <div 
+                      className="nav-active-indicator"
+                      aria-hidden="true"
+                    />
+                  )}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Footer */}
-          <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              <div className="flex items-center justify-between mb-2">
-                <span>API Status</span>
-                <div className="flex items-center space-x-1">
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                  <span className="text-green-600 dark:text-green-400">Online</span>
+          {/* Footer with performance indicators */}
+          <div className="sidebar-footer">
+            <div className="space-y-3">
+              {/* API Status */}
+              <div className="flex items-center justify-between">
+                <span className="footer-label">API Status</span>
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className="footer-status-indicator"
+                    role="status"
+                    aria-label="API status: online"
+                  />
+                  <span className="footer-status-text">Online</span>
                 </div>
               </div>
+              
+              {/* Version */}
               <div className="flex items-center justify-between">
-                <span>Version</span>
-                <span>1.0.0</span>
+                <span className="footer-label">Version</span>
+                <span className="footer-version">v1.0.0</span>
+              </div>
+              
+              {/* Performance indicator */}
+              <div className="flex items-center justify-between">
+                <span className="footer-label">Performance</span>
+                <div className="flex items-center space-x-2">
+                  <div className="flex space-x-0.5">
+                    <div className="performance-bar performance-bar-high" />
+                    <div className="performance-bar performance-bar-high" />
+                    <div className="performance-bar performance-bar-high" />
+                    <div className="performance-bar performance-bar-medium" />
+                    <div className="performance-bar performance-bar-low" />
+                  </div>
+                  <span className="footer-performance-text">Good</span>
+                </div>
               </div>
             </div>
           </div>

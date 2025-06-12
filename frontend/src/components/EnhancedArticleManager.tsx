@@ -162,11 +162,11 @@ export default function EnhancedArticleManager({ articles, onAuditArticle, onBul
     setComparedArticles(selectedArticles.slice(0, 2));
   };
 
-  const getStatusColor = (status: 'healthy' | 'warning' | 'critical') => {
+  const getStatusBadgeClass = (status: 'healthy' | 'warning' | 'critical') => {
     switch (status) {
-      case 'healthy': return 'text-green-600 bg-green-50 border-green-200';
-      case 'warning': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'critical': return 'text-red-600 bg-red-50 border-red-200';
+      case 'healthy': return 'article-status-healthy';
+      case 'warning': return 'article-status-warning';
+      case 'critical': return 'article-status-critical';
     }
   };
 
@@ -179,69 +179,54 @@ export default function EnhancedArticleManager({ articles, onAuditArticle, onBul
   };
 
   return (
-    <div className="space-y-6">
+    <div className="article-manager">
       {/* Search and Filters */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 relative">
-              <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <div className="article-search-section">
+            <div className="article-search-container">
+              <MagnifyingGlassIcon className="article-search-icon" />
               <input
                 type="text"
                 placeholder="Search articles..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="article-search-input"
               />
             </div>
             <Button
               variant="outline"
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center space-x-2"
+              className="article-filter-toggle"
             >
-              <AdjustmentsHorizontalIcon className="w-4 h-4" />
-              <span>Filters</span>
+              <AdjustmentsHorizontalIcon className="w-4 h-4 mr-2" />
+              Filters
             </Button>
           </div>
 
           {showFilters && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <div className="article-filters-container">
+              <div className="article-filters-grid">
+                <div className="article-filter-group">
+                  <label className="article-filter-label">Status</label>
                   <select
                     value={filters.status}
                     onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                    className="article-filter-select"
                   >
-                    <option value="all">All</option>
+                    <option value="all">All Status</option>
                     <option value="healthy">Healthy</option>
                     <option value="warning">Warning</option>
                     <option value="critical">Critical</option>
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <select
-                    value={filters.category}
-                    onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">All Categories</option>
-                    <option value="setup">Setup</option>
-                    <option value="troubleshooting">Troubleshooting</option>
-                    <option value="api">API</option>
-                    <option value="features">Features</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                <div className="article-filter-group">
+                  <label className="article-filter-label">Sort By</label>
                   <select
                     value={filters.sortBy}
                     onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                    className="article-filter-select"
                   >
                     <option value="title">Title</option>
                     <option value="lastModified">Last Modified</option>
@@ -250,12 +235,12 @@ export default function EnhancedArticleManager({ articles, onAuditArticle, onBul
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                <div className="article-filter-group">
+                  <label className="article-filter-label">Order</label>
                   <select
                     value={filters.sortOrder}
                     onChange={(e) => setFilters(prev => ({ ...prev, sortOrder: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                    className="article-filter-select"
                   >
                     <option value="asc">Ascending</option>
                     <option value="desc">Descending</option>
@@ -269,61 +254,76 @@ export default function EnhancedArticleManager({ articles, onAuditArticle, onBul
 
       {/* Bulk Operations */}
       {selectedArticles.length > 0 && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <span className="text-sm font-medium text-gray-700">
-                  {selectedArticles.length} article{selectedArticles.length > 1 ? 's' : ''} selected
-                </span>
-                {bulkOperation.status === 'running' && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-sm text-blue-600">{bulkOperation.progress.toFixed(0)}% complete</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center space-x-2">
+        <div className="article-bulk-operations">
+          <div className="article-bulk-info">
+            <span className="article-bulk-count">{selectedArticles.length} articles selected</span>
                 <Button
                   variant="outline"
+              size="sm"
+              onClick={() => setSelectedArticles([])}
+              className="article-bulk-clear"
+            >
+              Clear Selection
+            </Button>
+          </div>
+          
+          <div className="article-bulk-actions">
+            <Button
                   onClick={handleBulkAudit}
                   disabled={bulkOperation.status === 'running'}
-                  className="flex items-center space-x-2"
+              className="article-bulk-button"
                 >
-                  <PlayIcon className="w-4 h-4" />
-                  <span>Bulk Audit</span>
+              <PlayIcon className="w-4 h-4 mr-2" />
+              {bulkOperation.status === 'running' ? 'Running...' : 'Bulk Audit'}
                 </Button>
+            
                 <Button
                   variant="outline"
                   onClick={handleCompareArticles}
                   disabled={selectedArticles.length < 2}
-                  className="flex items-center space-x-2"
+              className="article-bulk-button"
                 >
-                  <DocumentDuplicateIcon className="w-4 h-4" />
-                  <span>Compare</span>
+              <DocumentDuplicateIcon className="w-4 h-4 mr-2" />
+              Compare Selected
                 </Button>
+          </div>
+
+          {bulkOperation.status === 'running' && (
+            <div className="article-bulk-progress">
+              <div className="article-progress-bar">
+                <div 
+                  className="article-progress-fill"
+                  style={{ width: `${bulkOperation.progress}%` }}
+                />
               </div>
+              <span className="article-progress-text">{Math.round(bulkOperation.progress)}%</span>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
       )}
 
       {/* Articles List */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Articles ({filteredArticles.length})</h3>
-            <Button
-              variant="outline"
-              onClick={handleSelectAll}
-              className="text-sm"
-            >
-              {selectedArticles.length === filteredArticles.length ? 'Deselect All' : 'Select All'}
-            </Button>
+      <div className="article-list-container">
+        <div className="article-list-header">
+          <div className="article-list-controls">
+            <label className="article-select-all">
+              <input
+                type="checkbox"
+                checked={selectedArticles.length === filteredArticles.length && filteredArticles.length > 0}
+                onChange={handleSelectAll}
+                className="article-checkbox"
+              />
+              <span className="article-select-all-text">
+                Select All ({filteredArticles.length})
+              </span>
+            </label>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+          <div className="article-results-count">
+            {filteredArticles.length} of {articles.length} articles
+          </div>
+        </div>
+
+        <div className="article-list">
             {filteredArticles.map((article) => {
               const auditData = mockAuditResults[article.id];
               const isSelected = selectedArticles.includes(article.id);
@@ -331,113 +331,92 @@ export default function EnhancedArticleManager({ articles, onAuditArticle, onBul
               return (
                 <div
                   key={article.id}
-                  className={`p-4 border rounded-lg transition-all cursor-pointer hover:shadow-md ${
-                    isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                  }`}
-                  onClick={() => handleSelectArticle(article.id)}
+                className={`article-item ${isSelected ? 'article-item-selected' : ''}`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-3 flex-1">
+                <div className="article-item-checkbox">
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handleSelectArticle(article.id)}
-                        className="mt-1"
-                        onClick={(e) => e.stopPropagation()}
+                    className="article-checkbox"
                       />
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">{article.title}</h4>
-                        <p className="text-sm text-gray-600 mt-1">{article.summary}</p>
-                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                          <span className="flex items-center space-x-1">
-                            <ClockIcon className="w-3 h-3" />
-                            <span>Modified {formatRelativeTime(article.lastModified)}</span>
-                          </span>
-                          <span className="px-2 py-1 bg-gray-100 rounded">{article.category}</span>
+                </div>
+
+                <div className="article-item-content">
+                  <div className="article-item-header">
+                    <h3 className="article-item-title">{article.title}</h3>
+                    <div className="article-item-badges">
                           {auditData && (
-                            <span className="flex items-center space-x-1">
-                              <span>Last audited {formatRelativeTime(auditData.lastAudited)}</span>
+                        <span className={`article-status-badge ${getStatusBadgeClass(auditData.status)}`}>
+                          {getStatusIcon(auditData.status)}
+                          <span className="ml-1">{auditData.status}</span>
                             </span>
                           )}
+                      <span className="article-category-badge">
+                        {article.category}
+                      </span>
                         </div>
                       </div>
+
+                  <div className="article-item-meta">
+                    <div className="article-meta-item">
+                      <ClockIcon className="article-meta-icon" />
+                      <span className="article-meta-text">
+                        Modified {formatRelativeTime(new Date(article.lastModified))}
+                      </span>
                     </div>
-                    <div className="flex items-center space-x-2">
                       {auditData && (
                         <>
-                          <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs border ${getStatusColor(auditData.status)}`}>
-                            {getStatusIcon(auditData.status)}
-                            <span>{auditData.score}%</span>
+                        <div className="article-meta-item">
+                          <span className="article-health-score">
+                            Health: {auditData.score}%
+                          </span>
+                        </div>
+                        <div className="article-meta-item">
+                          <span className="article-audit-date">
+                            Audited {formatRelativeTime(new Date(auditData.lastAudited))}
+                          </span>
                           </div>
                         </>
                       )}
                     </div>
+
+                  <div className="article-item-actions">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onAuditArticle?.(article.id)}
+                      className="article-action-button"
+                    >
+                      <PlayIcon className="w-4 h-4 mr-1" />
+                      Audit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="article-action-button"
+                    >
+                      View Details
+                    </Button>
+                  </div>
                   </div>
                 </div>
               );
             })}
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Article Comparison */}
-      {comparedArticles.length === 2 && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Article Comparison</h3>
-              <Button
-                variant="outline"
-                onClick={() => setComparedArticles([])}
-              >
-                Close
-              </Button>
+        {filteredArticles.length === 0 && (
+          <div className="article-empty-state">
+            <div className="article-empty-content">
+              <MagnifyingGlassIcon className="article-empty-icon" />
+              <h3 className="article-empty-title">No articles found</h3>
+              <p className="article-empty-description">
+                Try adjusting your search query or filters to find articles.
+              </p>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {comparedArticles.map((articleId) => {
-                const article = articles.find(a => a.id === articleId);
-                const auditData = mockAuditResults[articleId];
-                
-                if (!article) return null;
-                
-                return (
-                  <div key={articleId} className="space-y-4">
-                    <div className="border-b pb-4">
-                      <h4 className="font-medium text-gray-900 dark:text-white">{article.title}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">{article.summary}</p>
                     </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Health Score:</span>
-                        <span className="text-sm font-medium">{auditData?.score || 'N/A'}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Word Count:</span>
-                        <span className="text-sm font-medium">{article.content.split(' ').length}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Category:</span>
-                        <span className="text-sm font-medium">{article.category}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Last Modified:</span>
-                        <span className="text-sm font-medium">{formatRelativeTime(article.lastModified)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Tags:</span>
-                        <span className="text-sm font-medium">{article.tags.join(', ')}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+        )}
             </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

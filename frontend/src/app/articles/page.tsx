@@ -191,10 +191,10 @@ export default function ArticlesPage() {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading articles...</p>
+        <div className="articles-loading-container">
+          <div className="articles-loading-content">
+            <div className="articles-loading-spinner"></div>
+            <p className="articles-loading-text">Loading articles...</p>
           </div>
         </div>
       </div>
@@ -204,10 +204,10 @@ export default function ArticlesPage() {
   if (error) {
     return (
       <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" />
-            <p className="text-red-700">{error}</p>
+        <div className="articles-error-container">
+          <div className="articles-error-content">
+            <ExclamationTriangleIcon className="articles-error-icon" />
+            <p className="articles-error-text">{error}</p>
           </div>
         </div>
       </div>
@@ -217,10 +217,10 @@ export default function ArticlesPage() {
   return (
     <div className="p-6">
       <div className="mb-8">
-        <div className="flex justify-between items-center">
+        <div className="articles-page-header">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Articles</h1>
-            <p className="text-gray-600 dark:text-gray-300">
+            <h1 className="articles-page-title">Articles</h1>
+            <p className="articles-page-description">
               Manage and audit your knowledge base articles with AI-powered insights.
             </p>
           </div>
@@ -365,26 +365,26 @@ export default function ArticlesPage() {
             <CardContent>
               <div className="space-y-4">
                 {articles.map((article) => (
-                  <div key={article.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md dark:hover:shadow-lg transition-shadow bg-white dark:bg-gray-800">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{article.title}</h4>
-                        <p className="text-gray-600 dark:text-gray-300 mb-3">{article.summary || 'No summary available'}</p>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                          <span className="flex items-center space-x-1">
-                            <ClockIcon className="h-4 w-4" />
+                  <div key={article.id} className="articles-list-item">
+                    <div className="articles-list-item-content">
+                      <div className="articles-list-item-main">
+                        <h4 className="articles-list-item-title">{article.title}</h4>
+                        <p className="articles-list-item-summary">{article.summary || 'No summary available'}</p>
+                        <div className="articles-list-item-meta">
+                          <span className="articles-meta-item">
+                            <ClockIcon className="articles-meta-icon" />
                             <span>Modified {formatRelativeTime(article.lastModified)}</span>
                           </span>
-                          <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs">{article.category}</span>
-                          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs">
+                          <span className="articles-category-badge">{article.category}</span>
+                          <span className="articles-tags-badge">
                             {article.tags.join(', ')}
                           </span>
                           {/* Source indicator */}
                           {(article as any).source && (
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            <span className={`articles-source-badge ${
                               (article as any).source === 'storehub-care'
-                                ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                ? 'articles-source-storehub'
+                                : 'articles-source-local'
                             }`}>
                               {(article as any).source === 'storehub-care' ? '🌐 StoreHub Care' : '📄 Local'}
                             </span>
@@ -414,16 +414,16 @@ export default function ArticlesPage() {
                             }
                           }}
                           disabled={auditLoading.has(article.id)}
-                          className="flex items-center space-x-2"
+                          className="flex items-center space-x-2 px-6 py-3 text-lg font-semibold min-w-[120px]"
                         >
                           {auditLoading.has(article.id) ? (
                             <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                               <span>Auditing...</span>
                             </>
                           ) : (
                             <>
-                              <CheckCircleIcon className="h-4 w-4" />
+                              <CheckCircleIcon className="h-5 w-5" />
                               <span>Audit</span>
                             </>
                           )}
