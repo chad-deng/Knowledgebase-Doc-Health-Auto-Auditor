@@ -1,0 +1,81 @@
+{
+  "errorTypes": {
+    "VALIDATION_ERROR": {
+      "defaultMessage": "Invalid input provided",
+      "severity": "medium",
+      "category": "client",
+      "retryable": false
+    },
+    "SERVICE_ERROR": {
+      "defaultMessage": "Internal service error",
+      "severity": "high", 
+      "category": "application",
+      "retryable": true
+    },
+    "EXTERNAL_API_ERROR": {
+      "defaultMessage": "External service unavailable",
+      "severity": "high",
+      "category": "external",
+      "retryable": true
+    },
+    "NETWORK_ERROR": {
+      "defaultMessage": "Network connection failed",
+      "severity": "high",
+      "category": "infrastructure",
+      "retryable": true
+    },
+    "DATABASE_ERROR": {
+      "defaultMessage": "Database operation failed",
+      "severity": "high",
+      "category": "infrastructure", 
+      "retryable": true
+    },
+    "AUTH_ERROR": {
+      "defaultMessage": "Authentication failed",
+      "severity": "medium",
+      "category": "client",
+      "retryable": false
+    },
+    "ROUTE_NOT_FOUND": {
+      "defaultMessage": "Requested endpoint not found",
+      "severity": "low",
+      "category": "client",
+      "retryable": false
+    }
+  },
+  "responseFormats": {
+    "development": {
+      "includeStack": true,
+      "includeContext": true,
+      "sanitizeMessages": false
+    },
+    "production": {
+      "includeStack": false,
+      "includeContext": false,
+      "sanitizeMessages": true
+    },
+    "test": {
+      "includeStack": true,
+      "includeContext": true,
+      "sanitizeMessages": false
+    }
+  },
+  "logging": {
+    "level": "error",
+    "includeRequest": true,
+    "includeResponse": false,
+    "sensitiveFields": ["password", "token", "key", "secret", "authorization"]
+  },
+  "retryDelays": {
+    "NETWORK_ERROR": 1000,
+    "DATABASE_ERROR": 2000,
+    "EXTERNAL_API_ERROR": 5000,
+    "SERVICE_ERROR": 3000
+  },
+  "domainHandlers": {
+    "articles": "ArticlesErrorHandler",
+    "rules": "RulesErrorHandler", 
+    "ai": "AIErrorHandler",
+    "validation": "ValidationErrorHandler"
+  }
+} 
